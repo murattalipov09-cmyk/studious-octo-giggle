@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CRM Школа Кикбоксинга</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: var(--tg-theme-bg-color, #f3f4f6);
+            color: var(--tg-theme-text-color, #000);
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .card {
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+
+        .status-active {
+            background: #10b981;
+        }
+
+        .status-inactive {
+            background: #ef4444;
+        }
+
+        .status-trial {
+            background: #f59e0b;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-6">
+            <h1 class="text-3xl font-bold">🥊 CRM Школа Кикбоксинга</h1>
+            <p class="text-purple-100 mt-2">Система управления учениками и тренировками</p>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container mx-auto px-4 py-8">
+        
+        <!-- Navigation Tabs -->
+        <div class="bg-white rounded-lg shadow-md p-2 mb-8 flex flex-wrap gap-2">
+            <button onclick="switchTab('dashboard')" id="tab-dashboard" class="tab-active px-6 py-3 rounded-lg font-semibold transition">
+                📊 Главная
+            </button>
+            <button onclick="switchTab('students')" id="tab-students" class="px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+                👥 Ученики
+            </button>
+            <button onclick="switchTab('schedule')" id="tab-schedule" class="px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+                📅 Расписание
+            </button>
+            <button onclick="switchTab('payments')" id="tab-payments" class="px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+                💰 Платежи
+            </button>
+            <button onclick="switchTab('attendance')" id="tab-attendance" class="px-6 py-3 rounded-lg font-semibold hover:bg-gray-100 transition">
+                ✓ Посещаемость
+            </button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="content-dashboard" class="tab-content">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-lg shadow-md p-6 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm mb-1">Всего учеников</p>
+                            <p class="text-3xl font-bold text-purple-600" id="total-students">0</p>
+                        </div>
+                        <div class="bg-purple-100 p-4 rounded-full">
+                            <span class="text-3xl">👥</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm mb-1">Активных</p>
+                            <p class="text-3xl font-bold text-green-600" id="active-students">0</p>
+                        </div>
+                        <div class="bg-green-100 p-4 rounded-full">
+                            <span class="text-3xl">✓</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm mb-1">Доход за месяц</p>
+                            <p class="text-3xl font-bold text-blue-600" id="monthly-income">0 ₽</p>
+                        </div>
+                        <div class="bg-blue-100 p-4 rounded-full">
+                            <span class="text-3xl">💰</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 card">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm mb-1">Тренировок сегодня</p>
+                            <p class="text-3xl font-bold text-orange-600" id="today-classes">0</p>
+                        </div>
+                        <div class="bg-orange-100 p-4 rounded-full">
+                            <span class="text-3xl">🥊</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">Последняя активность</h2>
+                <div id="recent-activity" class="space-y-3">
+                    <p class="text-gray-500">Нет активности</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Students Tab -->
+        <div id="content-students" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="flex flex-wrap gap-4 justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Управление учениками</h2>
+                    <button onclick="openAddStudentModal()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition">
+                        + Добавить ученика
+                    </button>
+                </div>
+
+                <!-- Search -->
+                <div class="mb-4">
+                    <input type="text" id="search-students" onkeyup="searchStudents()" placeholder="🔍 Поиск по имени, телефону..." class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+
+                <!-- Students List -->
+                <div id="students-list" class="space-y-3">
+                    <!-- Students will be rendered here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Schedule Tab -->
+        <div id="content-schedule" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex flex-wrap gap-4 justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Расписание тренировок</h2>
+                    <button onclick="openAddClassModal()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition">
+                        + Добавить тренировку
+                    </button>
+                </div>
+
+                <div id="schedule-list" class="space-y-4">
+                    <!-- Schedule will be rendered here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments Tab -->
+        <div id="content-payments" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex flex-wrap gap-4 justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">Платежи</h2>
+                    <button onclick="openAddPaymentModal()" class="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition">
+                        + Добавить платеж
+                    </button>
+                </div>
+
+                <div id="payments-list" class="space-y-3">
+                    <!-- Payments will be rendered here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Tab -->
+        <div id="content-attendance" class="tab-content hidden">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Отметить посещаемость</h2>
+                
+                <div class="mb-6">
+                    <label class="block text-gray-700 font-semibold mb-2">Выберите тренировку:</label>
+                    <select id="attendance-class-select" onchange="loadAttendance()" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                        <option value="">-- Выберите тренировку --</option>
+                    </select>
+                </div>
+
+                <div id="attendance-list" class="space-y-3">
+                    <p class="text-gray-500">Выберите тренировку для отметки посещаемости</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add Student -->
+    <div id="modal-add-student" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <h3 class="text-2xl font-bold mb-4 text-gray-800">Добавить ученика</h3>
+                <form id="form-add-student" onsubmit="addStudent(event)">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Имя *</label>
+                        <input type="text" id="student-name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Телефон *</label>
+                        <input type="tel" id="student-phone" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Email</label>
+                        <input type="email" id="student-email" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Возраст</label>
+                        <input type="number" id="student-age" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Статус *</label>
+                        <select id="student-status" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="active">Активный</option>
+                            <option value="trial">Пробный</option>
+                            <option value="inactive">Неактивный</option>
+                        </select>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-semibold mb-2">Примечания</label>
+                        <textarea id="student-notes" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"></textarea>
+                    </div>
+                    <div class="flex gap-3">
+                        <button type="submit" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition">
+                            Добавить
+                        </button>
+                        <button type="button" onclick="closeModal('modal-add-student')" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-lg font-semibold transition">
+                            Отмена
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add Class -->
+    <div id="modal-add-class" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <h3 class="text-2xl font-bold mb-4 text-gray-800">Добавить тренировку</h3>
+                <form id="form-add-class" onsubmit="addClass(event)">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Название *</label>
+                        <input type="text" id="class-name" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">День недели *</label>
+                        <select id="class-day" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="Понедельник">Понедельник</option>
+                            <option value="Вторник">Вторник</option>
+                            <option value="Среда">Среда</option>
+                            <option value="Четверг">Четверг</option>
+                            <option value="Пятница">Пятница</option>
+                            <option value="Суббота">Суббота</option>
+                            <option value="Воскресенье">Воскресенье</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Время *</label>
+                        <input type="time" id="class-time" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Тренер *</label>
+                        <input type="text" id="class-trainer" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-semibold mb-2">Максимум учеников</label>
+                        <input type="number" id="class-max" value="15" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="flex gap-3">
+                        <button type="submit" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition">
+                            Добавить
+                        </button>
+                        <button type="button" onclick="closeModal('modal-add-class')" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-lg font-semibold transition">
+                            Отмена
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Add Payment -->
+    <div id="modal-add-payment" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-md w-full">
+            <div class="p-6">
+                <h3 class="text-2xl font-bold mb-4 text-gray-800">Добавить платеж</h3>
+                <form id="form-add-payment" onsubmit="addPayment(event)">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Ученик *</label>
+                        <select id="payment-student" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                            <option value="">-- Выберите ученика --</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Сумма (₽) *</label>
+                        <input type="number" id="payment-amount" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-semibold mb-2">Дата *</label>
+                        <input type="date" id="payment-date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="mb-6">
+                        <label class="block text-gray-700 font-semibold mb-2">Описание</label>
+                        <input type="text" id="payment-description" placeholder="Абонемент на месяц" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                    </div>
+                    <div class="flex gap-3">
+                        <button type="submit" class="flex-1 bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-lg font-semibold transition">
+                            Добавить
+                        </button>
+                        <button type="button" onclick="closeModal('modal-add-payment')" class="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 px-6 py-3 rounded-lg font-semibold transition">
+                            Отмена
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data Storage
+        let students = [];
+        let classes = [];
+        let payments = [];
+        let attendance = [];
+
+        // Load data from localStorage
+        function loadData() {
+            const savedStudents = localStorage.getItem('kickboxing-students');
+            const savedClasses = localStorage.getItem('kickboxing-classes');
+            const savedPayments = localStorage.getItem('kickboxing-payments');
+            const savedAttendance = localStorage.getItem('kickboxing-attendance');
+
+            if (savedStudents) students = JSON.parse(savedStudents);
+            if (savedClasses) classes = JSON.parse(savedClasses);
+            if (savedPayments) payments = JSON.parse(savedPayments);
+            if (savedAttendance) attendance = JSON.parse(savedAttendance);
+
+            // Add demo data if empty
+            if (students.length === 0) {
+                addDemoData();
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('kickboxing-students', JSON.stringify(students));
+            localStorage.setItem('kickboxing-classes', JSON.stringify(classes));
+            localStorage.setItem('kickboxing-payments', JSON.stringify(payments));
+            localStorage.setItem('kickboxing-attendance', JSON.stringify(attendance));
+        }
+
+        // Add demo data
+        function addDemoData() {
+            students = [
+                {id: 1, name: 'Иван Петров', phone: '+7 (999) 123-45-67', email: 'ivan@mail.ru', age: 25, status: 'active', notes: 'Опытный спортсмен', createdAt: new Date().toISOString()},
+                {id: 2, name: 'Мария Сидорова', phone: '+7 (999) 234-56-78', email: 'maria@mail.ru', age: 22, status: 'active', notes: '', createdAt: new Date().toISOString()},
+                {id: 3, name: 'Дмитрий Ковалев', phone: '+7 (999) 345-67-89', email: '', age: 18, status: 'trial', notes: 'Пробное занятие', createdAt: new Date().toISOString()}
+            ];
+
+            classes = [
+                {id: 1, name: 'Начинающие', day: 'Понедельник', time: '18:00', trainer: 'Сергей Иванов', maxStudents: 15},
+                {id: 2, name: 'Продвинутые', day: 'Среда', time: '19:00', trainer: 'Сергей Иванов', maxStudents: 12},
+                {id: 3, name: 'Детская группа', day: 'Суббота', time: '10:00', trainer: 'Анна Смирнова', maxStudents: 20}
+            ];
+
+            payments = [
+                {id: 1, studentId: 1, studentName: 'Иван Петров', amount: 5000, date: new Date().toISOString().split('T')[0], description: 'Абонемент на месяц'},
+                {id: 2, studentId: 2, studentName: 'Мария Сидорова', amount: 5000, date: new Date().toISOString().split('T')[0], description: 'Абонемент на месяц'}
+            ];
+
+            saveData();
+        }
+
+        // Tab switching
+        function switchTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+
+            // Remove active class from all buttons
+            document.querySelectorAll('[id^="tab-"]').forEach(btn => {
+                btn.classList.remove('tab-active');
+                btn.classList.add('hover:bg-gray-100');
+            });
+
+            // Show selected tab
+            document.getElementById('content-' + tabName).classList.remove('hidden');
+            document.getElementById('content-' + tabName).classList.add('fade-in');
+
+            // Add active class to selected button
+            const activeBtn = document.getElementById('tab-' + tabName);
+            activeBtn.classList.add('tab-active');
+            activeBtn.classList.remove('hover:bg-gray-100');
+
+            // Render content based on tab
+            if (tabName === 'dashboard') renderDashboard();
+            if (tabName === 'students') renderStudents();
+            if (tabName === 'schedule') renderSchedule();
+            if (tabName === 'payments') {
+                renderPayments();
+                populatePaymentStudentSelect();
+            }
+            if (tabName === 'attendance') {
+                populateAttendanceClassSelect();
+            }
+        }
+
+        // Render Dashboard
+        function renderDashboard() {
+            const totalStudents = students.length;
+            const activeStudents = students.filter(s => s.status === 'active').length;
+            
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            const monthlyIncome = payments
+                .filter(p => {
+                    const paymentDate = new Date(p.date);
+                    return paymentDate.getMonth() === currentMonth && paymentDate.getFullYear() === currentYear;
+                })
+                .reduce((sum, p) => sum + p.amount, 0);
+
+            const today = new Date().toLocaleDateString('ru-RU', {weekday: 'long'});
+            const todayClasses = classes.filter(c => c.day.toLowerCase() === today.toLowerCase()).length;
+
+            document.getElementById('total-students').textContent = totalStudents;
+            document.getElementById('active-students').textContent = activeStudents;
+            document.getElementById('monthly-income').textContent = monthlyIncome.toLocaleString('ru-RU') + ' ₽';
+            document.getElementById('today-classes').textContent = todayClasses;
+
+            // Recent activity
+            let activityHTML = '';
+            const recentPayments = payments.slice(-5).reverse();
+            
+            if (recentPayments.length > 0) {
+                recentPayments.forEach(p => {
+                    activityHTML += `
+                        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl">💰</span>
+                                <div>
+                                    <p class="font-semibold">${p.studentName}</p>
+                                    <p class="text-sm text-gray-500">${p.description || 'Платеж'}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold text-green-600">+${p.amount.toLocaleString('ru-RU')} ₽</p>
+                                <p class="text-sm text-gray-500">${new Date(p.date).toLocaleDateString('ru-RU')}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+            } else {
+                activityHTML = '<p class="text-gray-500">Нет активности</p>';
+            }
+
+            document.getElementById('recent-activity').innerHTML = activityHTML;
+        }
+
+        // Render Students
+        function renderStudents() {
+            const container = document.getElementById('students-list');
+            
+            if (students.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">Нет учеников. Добавьте первого ученика!</p>';
+                return;
+            }
+
+            let html = '';
+            students.forEach(student => {
+                const statusClass = student.status === 'active' ? 'status-active' : 
+                                   student.status === 'trial' ? 'status-trial' : 'status-inactive';
+                const statusText = student.status === 'active' ? 'Активный' : 
+                                  student.status === 'trial' ? 'Пробный' : 'Неактивный';
+
+                html += `
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition card">
+                        <div class="flex flex-wrap gap-4 justify-between items-start">
+                            <div class="flex-1 min-w-[200px]">
+                                <h3 class="text-lg font-bold text-gray-800">${student.name}</h3>
+                                <p class="text-gray-600 text-sm mt-1">📱 ${student.phone}</p>
+                                ${student.email ? `<p class="text-gray-600 text-sm">✉️ ${student.email}</p>` : ''}
+                                ${student.age ? `<p class="text-gray-600 text-sm">🎂 ${student.age} лет</p>` : ''}
+                                ${student.notes ? `<p class="text-gray-500 text-sm mt-2 italic">${student.notes}</p>` : ''}
+                            </div>
+                            <div class="flex flex-col items-end gap-2">
+                                <span class="${statusClass} text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                    ${statusText}
+                                </span>
+                                <button onclick="deleteStudent(${student.id})" class="text-red-600 hover:text-red-800 text-sm font-semibold">
+                                    🗑️ Удалить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Search students
+        function searchStudents() {
+            const searchTerm = document.getElementById('search-students').value.toLowerCase();
+            const filteredStudents = students.filter(s => 
+                s.name.toLowerCase().includes(searchTerm) || 
+                s.phone.toLowerCase().includes(searchTerm) ||
+                (s.email && s.email.toLowerCase().includes(searchTerm))
+            );
+
+            const container = document.getElementById('students-list');
+            if (filteredStudents.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">Ничего не найдено</p>';
+                return;
+            }
+
+            let html = '';
+            filteredStudents.forEach(student => {
+                const statusClass = student.status === 'active' ? 'status-active' : 
+                                   student.status === 'trial' ? 'status-trial' : 'status-inactive';
+                const statusText = student.status === 'active' ? 'Активный' : 
+                                  student.status === 'trial' ? 'Пробный' : 'Неактивный';
+
+                html += `
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition card">
+                        <div class="flex flex-wrap gap-4 justify-between items-start">
+                            <div class="flex-1 min-w-[200px]">
+                                <h3 class="text-lg font-bold text-gray-800">${student.name}</h3>
+                                <p class="text-gray-600 text-sm mt-1">📱 ${student.phone}</p>
+                                ${student.email ? `<p class="text-gray-600 text-sm">✉️ ${student.email}</p>` : ''}
+                                ${student.age ? `<p class="text-gray-600 text-sm">🎂 ${student.age} лет</p>` : ''}
+                                ${student.notes ? `<p class="text-gray-500 text-sm mt-2 italic">${student.notes}</p>` : ''}
+                            </div>
+                            <div class="flex flex-col items-end gap-2">
+                                <span class="${statusClass} text-white px-3 py-1 rounded-full text-sm font-semibold">
+                                    ${statusText}
+                                </span>
+                                <button onclick="deleteStudent(${student.id})" class="text-red-600 hover:text-red-800 text-sm font-semibold">
+                                    🗑️ Удалить
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Render Schedule
+        function renderSchedule() {
+            const container = document.getElementById('schedule-list');
+            
+            if (classes.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">Нет тренировок. Добавьте первую тренировку!</p>';
+                return;
+            }
+
+            const daysOrder = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+            const sortedClasses = [...classes].sort((a, b) => {
+                return daysOrder.indexOf(a.day) - daysOrder.indexOf(b.day);
+            });
+
+            let html = '';
+            sortedClasses.forEach(cls => {
+                html += `
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition card">
+                        <div class="flex flex-wrap gap-4 justify-between items-start">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-bold text-gray-800">🥊 ${cls.name}</h3>
+                                <p class="text-gray-600 mt-2">📅 ${cls.day} в ${cls.time}</p>
+                                <p class="text-gray-600">👨‍🏫 Тренер: ${cls.trainer}</p>
+                                <p class="text-gray-600">👥 Максимум: ${cls.maxStudents} человек</p>
+                            </div>
+                            <button onclick="deleteClass(${cls.id})" class="text-red-600 hover:text-red-800 text-sm font-semibold">
+                                🗑️ Удалить
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Render Payments
+        function renderPayments() {
+            const container = document.getElementById('payments-list');
+            
+            if (payments.length === 0) {
+                container.innerHTML = '<p class="text-gray-500 text-center py-8">Нет платежей</p>';
+                return;
+            }
+
+            let html = '';
+            const sortedPayments = [...payments].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            sortedPayments.forEach(payment => {
+                html += `
+                    <div class="border border-gray-200 rounded-lg p-4 hover:border-purple-300 transition card">
+                        <div class="flex flex-wrap gap-4 justify-between items-center">
+                            <div class="flex-1">
+                                <h3 class="text-lg font-bold text-gray-800">${payment.studentName}</h3>
+                                <p class="text-gray-600 text-sm mt-1">${payment.description || 'Платеж'}</p>
+                                <p class="text-gray-500 text-sm">${new Date(payment.date).toLocaleDateString('ru-RU')}</p>
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <span class="text-2xl font-bold text-green-600">${payment.amount.toLocaleString('ru-RU')} ₽</span>
+                                <button onclick="deletePayment(${payment.id})" class="text-red-600 hover:text-red-800 text-sm font-semibold">
+                                    🗑️
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+        }
+
+        // Populate payment student select
+        function populatePaymentStudentSelect() {
+            const select = document.getElementById('payment-student');
+            select.innerHTML = '<option value="">-- Выберите ученика --</option>';
+            
+            students.forEach(student => {
+                select.innerHTML += `<option value="${student.id}">${student.name}</option>`;
+            });
+        }
+
+        // Populate attendance class select
+        function populateAttendanceClassSelect() {
+            const select = document.getElementById('attendance-class-select');
+            select.innerHTML = '<option value="">-- Выберите тренировку --</option>';
+            
+            classes.forEach(cls => {
+                select.innerHTML += `<option value="${cls.id}">${cls.name} - ${cls.day} ${cls.time}</option>`;
+            });
+        }
+
+        // Load attendance
+        function loadAttendance() {
+            const classId = parseInt(document.getElementById('attendance-class-select').value);
+            const container = document.getElementById('attendance-list');
+            
+            if (!classId) {
+                container.innerHTML = '<p class="text-gray-500">Выберите тренировку для отметки посещаемости</p>';
+                return;
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            
+            let html = '';
+            students.filter(s => s.status === 'active').forEach(student => {
+                const attended = attendance.find(a => 
+                    a.studentId === student.id && 
+                    a.classId === classId && 
+                    a.date === today
+                );
+
+                html += `
+                    <div class="border border-gray-200 rounded-lg p-4 flex justify-between items-center">
+                        <div>
+                            <h3 class="font-bold text-gray-800">${student.name}</h3>
+                            <p class="text-sm text-gray-600">${student.phone}</p>
+                        </div>
+                        <button 
+                            onclick="toggleAttendance(${student.id}, ${classId}, '${today}')"
+                            class="px-6 py-2 rounded-lg font-semibold transition ${attended ? 'bg-green-500 hover:bg-green-600 text-white' : 'bg-gray-200 hover:bg-gray-300 text-gray-800'}"
+                        >
+                            ${attended ? '✓ Присутствовал' : 'Отметить'}
+                        </button>
+                    </div>
+                `;
+            });
+
+            if (html === '') {
+                html = '<p class="text-gray-500">Нет активных учеников</p>';
+            }
+
+            container.innerHTML = html;
+        }
+
+        // Toggle attendance
+        function toggleAttendance(studentId, classId, date) {
+            const index = attendance.findIndex(a => 
+                a.studentId === studentId && 
+                a.classId === classId && 
+                a.date === date
+            );
+
+            if (index > -1) {
+                attendance.splice(index, 1);
+            } else {
+                const student = students.find(s => s.id === studentId);
+                attendance.push({
+                    studentId,
+                    studentName: student.name,
+                    classId,
+                    date
+                });
+            }
+
+            saveData();
+            loadAttendance();
+        }
+
+        // Modal functions
+        function openAddStudentModal() {
+            document.getElementById('modal-add-student').classList.remove('hidden');
+            document.getElementById('modal-add-student').classList.add('flex');
+        }
+
+        function openAddClassModal() {
+            document.getElementById('modal-add-class').classList.remove('hidden');
+            document.getElementById('modal-add-class').classList.add('flex');
+        }
+
+        function openAddPaymentModal() {
+            populatePaymentStudentSelect();
+            document.getElementById('payment-date').valueAsDate = new Date();
+            document.getElementById('modal-add-payment').classList.remove('hidden');
+            document.getElementById('modal-add-payment').classList.add('flex');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+            document.getElementById(modalId).classList.remove('flex');
+        }
+
+        // Add student
+        function addStudent(e) {
+            e.preventDefault();
+            
+            const student = {
+                id: Date.now(),
+                name: document.getElementById('student-name').value,
+                phone: document.getElementById('student-phone').value,
+                email: document.getElementById('student-email').value,
+                age: document.getElementById('student-age').value,
+                status: document.getElementById('student-status').value,
+                notes: document.getElementById('student-notes').value,
+                createdAt: new Date().toISOString()
+            };
+
+            students.push(student);
+            saveData();
+            
+            document.getElementById('form-add-student').reset();
+            closeModal('modal-add-student');
+            renderStudents();
+            renderDashboard();
+
+            alert('✅ Ученик успешно добавлен!');
+        }
+
+        // Delete student
+        function deleteStudent(id) {
+            if (confirm('Вы уверены, что хотите удалить этого ученика?')) {
+                students = students.filter(s => s.id !== id);
+                saveData();
+                renderStudents();
+                renderDashboard();
+            }
+        }
+
+        // Add class
+        function addClass(e) {
+            e.preventDefault();
+            
+            const newClass = {
+                id: Date.now(),
+                name: document.getElementById('class-name').value,
+                day: document.getElementById('class-day').value,
+                time: document.getElementById('class-time').value,
+                trainer: document.getElementById('class-trainer').value,
+                maxStudents: parseInt(document.getElementById('class-max').value)
+            };
+
+            classes.push(newClass);
+            saveData();
+            
+            document.getElementById('form-add-class').reset();
+            closeModal('modal-add-class');
+            renderSchedule();
+            renderDashboard();
+
+            alert('✅ Тренировка успешно добавлена!');
+        }
+
+        // Delete class
+        function deleteClass(id) {
+            if (confirm('Вы уверены, что хотите удалить эту тренировку?')) {
+                classes = classes.filter(c => c.id !== id);
+                saveData();
+                renderSchedule();
+                renderDashboard();
+            }
+        }
+
+        // Add payment
+        function addPayment(e) {
+            e.preventDefault();
+            
+            const studentId = parseInt(document.getElementById('payment-student').value);
+            const student = students.find(s => s.id === studentId);
+
+            const payment = {
+                id: Date.now(),
+                studentId: studentId,
+                studentName: student.name,
+                amount: parseInt(document.getElementById('payment-amount').value),
+                date: document.getElementById('payment-date').value,
+                description: document.getElementById('payment-description').value
+            };
+
+            payments.push(payment);
+            saveData();
+            
+            document.getElementById('form-add-payment').reset();
+            closeModal('modal-add-payment');
+            renderPayments();
+            renderDashboard();
+
+            alert('✅ Платеж успешно добавлен!');
+        }
+
+        // Delete payment
+        function deletePayment(id) {
+            if (confirm('Вы уверены, что хотите удалить этот платеж?')) {
+                payments = payments.filter(p => p.id !== id);
+                saveData();
+                renderPayments();
+                renderDashboard();
+            }
+        }
+
+        // Initialize app
+        function init() {
+            loadData();
+            renderDashboard();
+            renderStudents();
+        }
+
+        // Telegram WebApp initialization
+        let tg = window.Telegram?.WebApp;
+        
+        function initTelegramWebApp() {
+            if (tg) {
+                // Expand the web app to full height
+                tg.expand();
+                
+                // Enable closing confirmation
+                tg.enableClosingConfirmation();
+                
+                // Set header color
+                tg.setHeaderColor('#7c3aed');
+                
+                // Show main button for quick actions
+                tg.MainButton.setText('Добавить ученика');
+                tg.MainButton.onClick(() => openAddStudentModal());
+                
+                // Get user data if available
+                if (tg.initDataUnsafe?.user) {
+                    console.log('Telegram User:', tg.initDataUnsafe.user);
+                }
+                
+                // Send data back to bot (optional)
+                window.sendDataToBot = function(data) {
+                    tg.sendData(JSON.stringify(data));
+                };
+            }
+        }
+
+        // Run on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            initTelegramWebApp();
+            init();
+        });
+    </script>
+</body>
+</html>
